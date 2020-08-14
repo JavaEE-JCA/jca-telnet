@@ -15,6 +15,8 @@ package ir.moke.jca.adapter;
 
 import ir.moke.jca.api.TelnetListener;
 
+import javax.resource.spi.endpoint.MessageEndpoint;
+import javax.resource.spi.endpoint.MessageEndpointFactory;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
@@ -23,23 +25,21 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public class TelnetServer implements TtyCodes {
+public class TelnetServer extends Thread implements TtyCodes {
 
-    private final TelnetListener listener;
-
-    private final TelnetActivationSpec spec;
-
-    private final int port;
-
-    private final Map<String, Cmd> cmds = new TreeMap<String, Cmd>();
-
+    private TelnetListener listener;
+    private TelnetActivationSpec spec;
+    private MessageEndpointFactory mef;
+    private int port;
+    private final Map<String, Cmd> cmds = new TreeMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
     private ServerSocket serverSocket;
 
-    public TelnetServer(TelnetActivationSpec spec, TelnetListener listener, int port) {
+    public TelnetServer(MessageEndpointFactory messageEndpointFactory, TelnetActivationSpec spec, int port) {
+        // This messageEndpoint instance is also castable to the ejbClass of the MDB
         this.port = port;
         this.spec = spec;
-        this.listener = listener;
+        this.mef = messageEndpointFactory;
 
         for (Cmd cmd : spec.getCmds()) {
             this.cmds.put(cmd.getName(), cmd);
@@ -55,6 +55,17 @@ public class TelnetServer implements TtyCodes {
 
     public TelnetListener getListener() {
         return listener;
+    }
+
+    @Override
+    public void run() {
+        try {
+            final MessageEndpoint messageEndpoint = mef.createEndpoint(null);
+            this.listener = (TelnetListener) messageEndpoint;
+            activate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void activate() throws IOException {

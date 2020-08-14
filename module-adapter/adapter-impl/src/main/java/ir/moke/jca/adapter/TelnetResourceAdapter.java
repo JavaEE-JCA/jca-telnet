@@ -13,17 +13,16 @@
  */
 package ir.moke.jca.adapter;
 
-import ir.moke.jca.api.TelnetListener;
+import ir.moke.jca.api.Command;
+import ir.moke.jca.api.Prompt;
 
 import javax.resource.ResourceException;
-import javax.resource.spi.ActivationSpec;
-import javax.resource.spi.BootstrapContext;
-import javax.resource.spi.Connector;
-import javax.resource.spi.ResourceAdapterInternalException;
+import javax.resource.spi.*;
 import javax.resource.spi.endpoint.MessageEndpoint;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.transaction.xa.XAResource;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +36,8 @@ public class TelnetResourceAdapter implements javax.resource.spi.ResourceAdapter
 
     private final Map<Integer, TelnetServer> activated = new HashMap<Integer, TelnetServer>();
     private static final int PORT = 2020;
+    private Class<?> beanClass;
+    private TelnetActivationSpec telnetActivationSpec;
 
     /**
      * Corresponds to the ra.xml <config-property>
@@ -49,23 +50,13 @@ public class TelnetResourceAdapter implements javax.resource.spi.ResourceAdapter
     }
 
     public void endpointActivation(MessageEndpointFactory messageEndpointFactory, ActivationSpec activationSpec) throws ResourceException {
-        final TelnetActivationSpec telnetActivationSpec = (TelnetActivationSpec) activationSpec;
+        telnetActivationSpec = (TelnetActivationSpec) activationSpec;
+        beanClass = messageEndpointFactory.getEndpointClass() != null ? messageEndpointFactory.getEndpointClass() : telnetActivationSpec.getBeanClass();
+        validate();
 
-        System.out.println("#####################################");
-        System.out.println(">>>>>>>>>>>>>>>> " + PORT);
-        final MessageEndpoint messageEndpoint = messageEndpointFactory.createEndpoint(null);
-
-        // This messageEndpoint instance is also castable to the ejbClass of the MDB
-        final TelnetListener telnetListener = (TelnetListener) messageEndpoint;
-
-        final TelnetServer telnetServer = new TelnetServer(telnetActivationSpec, telnetListener, PORT);
-
-        try {
-            telnetServer.activate();
-            activated.put(PORT, telnetServer);
-        } catch (IOException e) {
-            throw new ResourceException(e);
-        }
+        final TelnetServer telnetServer = new TelnetServer(messageEndpointFactory, telnetActivationSpec, PORT);
+        telnetServer.start();
+        activated.put(PORT, telnetServer);
     }
 
     public void endpointDeactivation(MessageEndpointFactory messageEndpointFactory, ActivationSpec activationSpec) {
@@ -91,6 +82,31 @@ public class TelnetResourceAdapter implements javax.resource.spi.ResourceAdapter
     @Override
     public int hashCode() {
         return PORT;
+    }
+
+    public void validate() throws InvalidPropertyException {
+        // Set Prompt
+        final Prompt prompt = beanClass.getAnnotation(Prompt.class);
+        if (prompt != null) {
+            telnetActivationSpec.setPrompt(prompt.value());
+        }
+
+        // Get Commands
+        final Method[] methods = beanClass.getDeclaredMethods();
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(Command.class)) {
+                final Command command = method.getAnnotation(Command.class);
+                telnetActivationSpec.addCmd(new Cmd(command.value(), method));
+            }
+        }
+
+        // Validate
+        if (telnetActivationSpec.getPrompt() == null || telnetActivationSpec.getPrompt().length() == 0) {
+            telnetActivationSpec.setPrompt("prompt>");
+        }
+        if (telnetActivationSpec.getCmds().size() == 0) {
+            throw new InvalidPropertyException("No @Command methods");
+        }
     }
 
 }

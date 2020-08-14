@@ -13,16 +13,12 @@
  */
 package ir.moke.jca.adapter;
 
-import ir.moke.jca.api.Command;
-import ir.moke.jca.api.Prompt;
 import ir.moke.jca.api.TelnetListener;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.Activation;
 import javax.resource.spi.ActivationSpec;
-import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapter;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +26,7 @@ import java.util.List;
 public class TelnetActivationSpec implements ActivationSpec {
 
     private ResourceAdapter resourceAdapter;
-    private final List<Cmd> cmds = new ArrayList<Cmd>();
+    private final List<Cmd> cmds = new ArrayList<>();
     private String prompt;
     private Class<?> beanClass;
 
@@ -54,30 +50,12 @@ public class TelnetActivationSpec implements ActivationSpec {
         return cmds;
     }
 
+    public void addCmd(Cmd cmd) {
+        cmds.add(cmd);
+    }
+
     @Override
-    public void validate() throws InvalidPropertyException {
-        // Set Prompt
-        final Prompt prompt = beanClass.getAnnotation(Prompt.class);
-        if (prompt != null) {
-            this.prompt = prompt.value();
-        }
-
-        // Get Commands
-        final Method[] methods = beanClass.getMethods();
-        for (Method method : methods) {
-            if (method.isAnnotationPresent(Command.class)) {
-                final Command command = method.getAnnotation(Command.class);
-                cmds.add(new Cmd(command.value(), method));
-            }
-        }
-
-        // Validate
-        if (this.prompt == null || this.prompt.length() == 0) {
-            this.prompt = "prompt>";
-        }
-        if (this.cmds.size() == 0) {
-            throw new InvalidPropertyException("No @Command methods");
-        }
+    public void validate() {
     }
 
     @Override
