@@ -92,11 +92,9 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <version>3.2</version>
                 <configuration>
-<!--
                     <jvmOptions>
                         <param>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=7777</param>
                     </jvmOptions>
--->
                 </configuration>
             </plugin>
 
