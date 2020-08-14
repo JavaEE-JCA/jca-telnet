@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ir.moke.jca</groupId>
+        <artifactId>jca-telnet</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>module-ear</artifactId>
+    <packaging>ear</packaging>
+    <name>Moke :: JCA Telnet :: EAR</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>adapter-api</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>adapter-rar</artifactId>
+            <version>${project.version}</version>
+            <type>rar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>module-web</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>jca-application</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <includeLibInApplicationXml>true</includeLibInApplicationXml>
+                    <generateApplicationXml>true</generateApplicationXml>
+                    <defaultLibBundleDir>/lib</defaultLibBundleDir>
+                    <modules>
+                        <jarModule>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>adapter-api</artifactId>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <rarModule>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>adapter-rar</artifactId>
+                            <uri>/jca-resourceAdapter.rar</uri>
+                        </rarModule>
+                        <webModule>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>module-web</artifactId>
+                            <uri>/jca-web.war</uri>
+                            <!-- Set custom context root -->
+                            <contextRoot>/</contextRoot>
+                        </webModule>
+                    </modules>
+                </configuration>
+            </plugin>
+
+
+            <!-- Enable liberty plugin -->
+            <plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+<!--
+                    <jvmOptions>
+                        <param>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=7777</param>
+                    </jvmOptions>
+-->
+                </configuration>
+            </plugin>
+
+            <!-- Enable TomEE plugin -->
+            <plugin>
+                <groupId>org.apache.tomee.maven</groupId>
+                <artifactId>tomee-maven-plugin</artifactId>
+                <version>8.0.3</version>
+                <configuration>
+                    <tomeeClassifier>plus</tomeeClassifier>
+<!--                    <args>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=7777</args>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
