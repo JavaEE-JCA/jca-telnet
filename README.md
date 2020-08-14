@@ -10,7 +10,7 @@ A user will connect with a telnet client which will cause our resource adapter t
 mvn clean compile install ; (cd ear-module/ ; mvn tomee:run)
 ```
 
-**Liberty/OpenLiberty (Not compatible yet)**     
+**Liberty/OpenLiberty**     
 ```shell script
 mvn clean compile install ; (cd ear-module/ ; mvn liberty:run)
 ```
