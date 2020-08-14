@@ -8,5 +8,5 @@ A user will connect with a telnet client which will cause our resource adapter t
 **TomEE 8**     
 `mvn clean compile install ; (cd ear-module/ ; mvn tomee:run)`
 
-**Liberty/OpenLiberty**     
-`mvn clean compile install ; (cd ear-module/ ; mvn liberty:run)`
+**Liberty/OpenLiberty (Not compatible yet)**     
+~~mvn clean compile install ; (cd ear-module/ ; mvn liberty:run)~~
