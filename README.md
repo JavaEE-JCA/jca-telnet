@@ -6,7 +6,24 @@ A user will connect with a telnet client which will cause our resource adapter t
 
 #### build and run :     
 **TomEE 8**     
-`mvn clean compile install ; (cd ear-module/ ; mvn tomee:run)`
+```shell script
+mvn clean compile install ; (cd ear-module/ ; mvn tomee:run)
+```
 
 **Liberty/OpenLiberty (Not compatible yet)**     
-~~mvn clean compile install ; (cd ear-module/ ; mvn liberty:run)~~
+```shell script
+mvn clean compile install ; (cd ear-module/ ; mvn liberty:run)
+```
+
+**Simple Implementation:** 
+```java
+@MessageDriven
+@Prompt("pronto>")
+public class SystemMDB implements TelnetListener {
+
+    @Command("os")
+    public String getOsType() {
+        return System.getProperty("os.name");
+    }
+}
+```    
